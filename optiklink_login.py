@@ -80,15 +80,20 @@ def create_session():
 _tg_session = None
 
 def tg_send(title: str, content: str):
-    """发送 Telegram 消息（Markdown），带自动重试（3次）"""
+    """发送 Telegram 消息（HTML），带自动重试（3次）"""
     global _tg_session
     if _tg_session is None:
         _tg_session = _req.Session()
         _tg_session.headers.update({"Content-Type": "application/json"})
 
     url = f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage"
-    text = f"*{title}*\n\n{content}"
-    payload = {"chat_id": TG_CHAT_ID, "text": text, "parse_mode": "Markdown", "disable_web_page_preview": True}
+    text = f"<b>{title}</b>\n\n{content}"
+    payload = {
+        "chat_id": TG_CHAT_ID,
+        "text": text,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True
+    }
 
     for attempt in range(3):
         try:
@@ -336,23 +341,22 @@ def build_report(info, server_result):
         pass
 
     lines = [
-        f"## OptikLink 自动登录报告",
-        f"**状态**: {status}",
-        f"**用户名**: {info['username']}",
-        f"**运行服务器**: {info['running_servers']} 个",
-        f"**服务到期**: {info['expire_date']}",
-        f"**剩余天数**: {days_left} 天",
-        f"**执行时间**: {now.strftime('%Y-%m-%d %H:%M:%S')} UTC",
+        f"<b>状态</b>: {status}",
+        f"<b>用户名</b>: {info['username']}",
+        f"<b>运行服务器</b>: {info['running_servers']} 个",
+        f"<b>服务到期</b>: {info['expire_date']}",
+        f"<b>剩余天数</b>: {days_left} 天",
+        f"<b>执行时间</b>: {now.strftime('%Y-%m-%d %H:%M:%S')} UTC",
     ]
     if not server_result.get("skipped"):
         if "error" in server_result:
-            lines.append(f"**服务器保活**: ❌ {server_result['error'][:100]}")
+            lines.append(f"<b>服务器保活</b>: ❌ {server_result['error'][:100]}")
         else:
-            lines.append(f"**服务器ID**: {server_result['server_id']}")
-            lines.append(f"**启动前状态**: {server_result['status_before']}")
-            lines.append(f"**启动后状态**: {server_result['status_after']}")
+            lines.append(f"<b>服务器ID</b>: {server_result['server_id']}")
+            lines.append(f"<b>启动前状态</b>: {server_result['status_before']}")
+            lines.append(f"<b>启动后状态</b>: {server_result['status_after']}")
             if server_result['action_taken'] == 'start':
-                lines.append("**操作**: ▶️ 已自动启动")
+                lines.append("<b>操作</b>: ▶️ 已自动启动")
     return "\n".join(lines)
 
 # ─────────────────────────────────────────────────────────────
